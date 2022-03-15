@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Mockery\Exception\InvalidOrderException;
 
 class ProductController extends Controller {
 
@@ -19,35 +18,61 @@ class ProductController extends Controller {
         return response()->json($data);
     }
 
-    public function show(Product $id) {
-        if (!$id) {
-            return response()->json(['message' => 'Product not found'], 400);
-        }
+    public function show($id) {
+        $product = $this->product->find($id);
 
-        $data = ['data' => $id];
-        return response()->json($data);
+        if (!$product) {
+            return response()->json(['data' => ['message' => 'Product not found']], 400);
+        }
+        try {
+            $data = ['data' => $id];
+            return response()->json($data);
+        } catch (\Throwable $th) {
+            return response()->json(['data' => ['message' => 'Internal Error', 'debug' => $th]], 500);
+        }
     }
 
     public function create(Request $request) {
         if (!$request["price"] || !$request["name"] || !$request["description"]) {
-            return response()->json(['message' => 'New products should have name, description and price'], 400);
+            return response()->json(['data' => ['message' => 'New products should have name, description and price']], 400);
         }
 
         $requestData = $request->all();
-        $this->product->create($requestData);
-
-        return response($requestData, 201);
+        try {
+            $this->product->create($requestData);
+            return response($requestData, 201);
+        } catch (\Throwable $th) {
+            return response()->json(['data' => ['message' => 'Internal Error', 'debug' => $th]], 500);
+        }
     }
 
-    public function update(Product $id, Request $request) {
-        $id->update($request->all());
-        return response()->json(['data' => $id], 201);
+    public function update($id, Request $request) {
+        $product = $this->product->find($id);
+
+        if (!$product) {
+            return response()->json(['data' => ['message' => 'Product not found']], 400);
+        }
+        try {
+            $product->update($request->all());
+            return response()->json(['data' => $id], 201);
+
+        } catch (\Throwable $th) {
+            return response()->json(['data' => ['message' => 'Internal Error', 'debug' => $th]], 500);
+        }
     }
 
-    public function delete(Product $id) {
-        $id->delete();
+    public function delete($id) {
+        $product = $this->product->find($id);
 
-        return response()->json(['message' => 'Success'], 204);
+        if (!$product) {
+            return response()->json(['data' => ['message' => 'Product not found']], 400);
+        }
+
+        try {
+            $product->delete();
+            return response()->json(['message' => 'Success'], 204);
+        } catch (\Throwable $th) {
+            return response()->json(['data' => ['message' => 'Internal Error', 'debug' => $th]], 500);
+        }
     }
 }
-
