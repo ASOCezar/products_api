@@ -25,4 +25,6 @@ Route::prefix('/products')->group(function() {
     Route::get('/{id}', [ProductController::class, 'show']);
 
     Route::post('/', [ProductController::class, 'create']);
+
+    Route::put('/{id}', [ProductController::class, 'update']);
 });

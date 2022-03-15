@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Api;
+namespace App\Http\Controllers\Api;
 
 class ApiError {
     public static function errorMessage($message, $code) {
